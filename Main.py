@@ -39,7 +39,7 @@ async def addval(id, file, add):
 
 
 async def buypetfunc(id, pet, cost):
-    if int(await getval(id, 'bal', '0'))>int(cost)-1:
+    if int(await getval(id, 'bal', '0')) > int(cost) - 1:
         temp = open(id + '/petlist.txt', 'a+')
         temp.close()
         with open(str(id) + '/petlist.txt', 'rb') as fp:
@@ -47,23 +47,25 @@ async def buypetfunc(id, pet, cost):
                 load = pickle.load(fp)
             except EOFError:
                 load = None
-            if await getval(str(id), 'maxpets', 3)==load:
-                return 'inventory full ('+str(await getval(id, 'maxpets', 3))+'/'+str(await getval(id, 'maxpets', 3))+')'
+            if await getval(str(id), 'maxpets', 3) == load:
+                return 'inventory full (' + str(await getval(id, 'maxpets', 3)) + '/' + str(
+                    await getval(id, 'maxpets', 3)) + ')'
             else:
                 try:
                     load.append(str(pet))
                 except:
-                    load=[pet]
+                    load = [pet]
                 with open(str(id) + '/petlist.txt', 'wb') as file:
                     pickle.dump(load, file)
                 await addval(str(id), bal, '-' + cost)
-                return str(pet)+' bought for '+str(cost)+'$'
-    else: return 'I diagnose you with poor'
+                return str(pet) + ' bought for ' + str(cost) + '$'
+    else:
+        return 'I diagnose you with poor'
 
 
 def converttostr(input_seq, seperator):
-   final_str = seperator.join(input_seq)
-   return final_str
+    final_str = seperator.join(input_seq)
+    return final_str
 
 
 # COMMANDS
@@ -97,9 +99,8 @@ async def grant(ctx, id, amount):  # admin command to grant money
         await ctx.send('granted ' + str(amount) + '$ to id ' + str(id))
 
 
-
 @bot.command()
-async def buypet(ctx, pet = None):
+async def buypet(ctx, pet=None):
     if not pet:
         with open('petshop.txt', 'r') as petshop:
             await ctx.send(petshop.read())
@@ -107,6 +108,8 @@ async def buypet(ctx, pet = None):
         if pet == 'turtle':
             await ctx.send(await buypetfunc(str(ctx.author.id), 'turtle', '5000'))
             await ctx.send(':turtle:')
+
+
 @bot.command()
 async def petlist(ctx):
     with open(str(ctx.author.id) + '/petlist.txt', 'rb') as fp:
