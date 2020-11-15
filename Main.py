@@ -1,6 +1,6 @@
 # created by tea8j on github, if this was reposted elsewhere, tell me.
 # credits to magic turtle#6942 on discord for help testing and brainstorming
-# TODO: add dog, add pet functionality, add inventory system
+# TODO: add pet functionality, add inventory system
 import discord
 from discord.ext import commands
 import os
@@ -46,19 +46,16 @@ async def buypetfunc(id, pet, cost):
             try:
                 load = pickle.load(fp)
             except EOFError:
-                load = None
-            if await getval(str(id), 'maxpets', 3) == load:
-                return 'inventory full (' + str(await getval(id, 'maxpets', 3)) + '/' + str(
-                    await getval(id, 'maxpets', 3)) + ')'
+                load = ['temp']
+            if load == ['temp']:
+                load.remove('temp')
+                load.append(str(pet))
             else:
-                try:
-                    load.append(str(pet))
-                except:
-                    load = [pet]
-                with open(str(id) + '/petlist.txt', 'wb') as file:
-                    pickle.dump(load, file)
-                await addval(str(id), bal, '-' + cost)
-                return str(pet) + ' bought for ' + str(cost) + '$'
+                load.append(str(pet))
+            with open(str(id) + '/petlist.txt', 'wb') as file:
+                pickle.dump(load, file)
+            await addval(str(id), bal, '-' + cost)
+            return str(pet) + ' bought for ' + str(cost) + '$'
     else:
         return 'I diagnose you with poor'
 
@@ -108,6 +105,9 @@ async def buypet(ctx, pet=None):
         if pet == 'turtle':
             await ctx.send(await buypetfunc(str(ctx.author.id), 'turtle', '5000'))
             await ctx.send(':turtle:')
+        if pet == 'dog':
+            await ctx.send(await buypetfunc(str(ctx.author.id), 'dog', '5000'))
+            await ctx.send(':dog:')
 
 
 @bot.command()
