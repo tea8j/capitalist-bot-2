@@ -6,7 +6,7 @@ from discord.ext import commands
 import os
 from datetime import date
 import pickle
-
+#
 # sets command prefix
 bot = commands.Bot(command_prefix='>')
 
