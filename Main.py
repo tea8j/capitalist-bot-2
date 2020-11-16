@@ -1,12 +1,11 @@
 # created by tea8j on github, if this was reposted elsewhere, tell me.
 # credits to magic turtle#6942 on discord for help testing and brainstorming
-# TODO: add pet functionality, add inventory system
 import discord
 from discord.ext import commands
 import os
 from datetime import date
 import pickle
-#
+
 # sets command prefix
 bot = commands.Bot(command_prefix='>')
 
@@ -60,9 +59,54 @@ async def buypetfunc(id, pet, cost):
         return 'I diagnose you with poor'
 
 
-def converttostr(input_seq, seperator):
+async def converttostr(input_seq, seperator):
     final_str = seperator.join(input_seq)
     return final_str
+
+
+async def giveitem(id, item):
+    await mkdir(str(id))
+    temp = open(id + '/inventory.txt', 'a+')
+    temp.close()
+    with open(str(id) + '/inventory.txt', 'rb') as fp:
+        try:
+            load = pickle.load(fp)
+        except EOFError:
+            load = ['temp']
+        if load == ['temp']:
+            load.remove('temp')
+            load.append(str(item))
+        else:
+            load.append(str(item))
+        with open(str(id) + '/inventory.txt', 'wb') as file:
+            pickle.dump(load, file)
+
+
+async def buyitem(id, item, cost):
+    if int(await getval(id, 'bal', '0')) > int(cost) - 1:
+        temp = open(id + '/inventory.txt', 'a+')
+        temp.close()
+        with open(str(id) + '/inventory.txt', 'rb') as fp:
+            try:
+                load = pickle.load(fp)
+            except EOFError:
+                load = ['temp']
+            length = float(len(load))
+            maxinv = float(await getval(str(id), 'maxinv', 50))
+            if round(maxinv) <= length:
+                return 'inventory full (' + str(int(length)) + '/' + str(round(maxinv)) + ')'
+            else:
+                if load == ['temp']:
+                    load.remove('temp')
+                    load.append(str(item))
+                else:
+                    load.append(str(item))
+                with open(str(id) + '/inventory.txt', 'wb') as file:
+                    pickle.dump(load, file)
+                await addval(str(id), bal, '-' + cost)
+                return str(item) + ' bought for ' + str(cost) + '$'
+    else:
+        return 'I diagnose you with poor'
 
 
 # COMMANDS
@@ -111,18 +155,170 @@ async def buypet(ctx, pet=None):
 
 
 @bot.command()
-async def petlist(ctx):
+async def pets(ctx):
+    temp = open(str(ctx.author.id) + '/petlist.txt', 'a+')
+    temp.close()
+    temp = open(str(ctx.author.id) + '/activepets.txt', 'a+')
+    temp.close()
     with open(str(ctx.author.id) + '/petlist.txt', 'rb') as fp:
         list = pickle.load(fp)
-        stringlist = converttostr(list, ', ')
+        stringlist = await converttostr(list, ', ')
+        await ctx.send('archived pets: ' + stringlist)
+    with open(str(ctx.author.id) + '/activepets.txt', 'rb') as fp:
+        list = pickle.load(fp)
+        stringlist = await converttostr(list, ', ')
+        await ctx.send('active pets: ' + stringlist)
+
+
+@bot.command()
+async def shop(ctx):
+    with open('shop.txt', 'r') as shop:
+        await ctx.send(shop.read())
+
+
+@bot.command()
+async def buy(ctx, item=None):
+    if not item:
+        with open('shop.txt', 'r') as shop:
+            await ctx.send(shop.read())
+    else:
+        if item == 'donald_trump_plushie':
+            await ctx.send(await buyitem(str(ctx.author.id), 'donald_trump_plushie', '1000'))
+            await ctx.send(':flag_us:')
+        if item == 'bronze_donald_trump_plushie':
+            await ctx.send(await buyitem(str(ctx.author.id), 'bronze_donald_trump_plushie', '10000'))
+            await ctx.send(':flag_us:')
+        if item == 'silver_donald_trump_plushie':
+            await ctx.send(await buyitem(str(ctx.author.id), 'silver_donald_trump_plushie', '100000'))
+            await ctx.send(':flag_us:')
+        if item == 'gold_donald_trump_plushie':
+            await ctx.send(await buyitem(str(ctx.author.id), 'gold_donald_trump_plushie', '1000000'))
+            await ctx.send(':flag_us:')
+
+
+@bot.command()
+async def inv(ctx):
+    with open(str(ctx.author.id) + '/inventory.txt', 'rb') as fp:
+        list = pickle.load(fp)
+        stringlist = await converttostr(list, ', ')
         await ctx.send(stringlist)
+
+
+@bot.command()
+async def activepets(ctx, addremovelist=None, pet=None):
+    if not addremovelist:
+        await ctx.send('USAGE:\n>activepets [add/remove/list] [petname]')
+    if addremovelist == 'add':
+        temp = open(str(ctx.author.id) + '/petlist.txt', 'a+')
+        temp.close()
+        with open(str(ctx.author.id) + '/petlist.txt', 'rb') as fp:
+            try:
+                list = pickle.load(fp)
+            except EOFError:
+                list = ['if u see this, hello']
+        if str(pet) in list:
+            await mkdir(str(ctx.author.id))
+            maxpets = await getval(str(ctx.author.id), 'maxpets', 3)
+            temp = open(str(ctx.author.id) + '/activepets.txt', 'a+')
+            temp.close()
+            with open(str(ctx.author.id) + '/activepets.txt', 'rb') as fb:
+                try:
+                    load = pickle.load(fb)
+                except EOFError:
+                    load = ['temp']
+                activepetnum = str(len(load))
+            if str(activepetnum) == str(maxpets):
+                await ctx.send(
+                    'pet inventory full. (' + activepetnum + '/' + maxpets + ') use >activepets remove [pet] to remove a pet from your active pets')
+            elif str(pet) in list:
+                if load == ['temp']:
+                    load.remove('temp')
+                with open(str(ctx.author.id) + '/activepets.txt', 'wb') as fb:
+                    load.append(str(pet))
+                    pickle.dump(load, fb)
+                fp.close()
+                with open(str(ctx.author.id) + '/petlist.txt', 'wb') as fp:
+                    list.remove(str(pet))
+                    pickle.dump(list, fp)
+                await ctx.send('look at you with your fancy ass ' + str(pet))
+        else:
+            await ctx.send('you don\'t have that pet :rofl:')
+    if addremovelist == 'remove':
+        temp = open(str(ctx.author.id) + '/activepets.txt', 'a+')
+        temp.close()
+        with open(str(ctx.author.id) + '/activepets.txt', 'rb') as fp:
+            try:
+                list = pickle.load(fp)
+            except EOFError:
+                list = ['if u see this, hello']
+        if str(pet) in list:
+            temp = open(str(ctx.author.id) + '/petlist.txt', 'a+')
+            temp.close()
+            with open(str(ctx.author.id) + '/petlist.txt', 'rb')as fb:
+                load = pickle.load(fb)
+            with open(str(ctx.author.id) + '/petlist.txt', 'wb') as fb:
+                load.append(str(pet))
+                pickle.dump(load, fb)
+                fp.close()
+            with open(str(ctx.author.id) + '/activepets.txt', 'wb') as fp:
+                list.remove(str(pet))
+                pickle.dump(list, fp)
+            await ctx.send('you\'re off to the shadow realm, ' + str(pet))
+        else:
+            await ctx.send('you don\'t have that pet :rofl:')
+
+
+@bot.command()
+async def reloadpets(ctx):
+    await mkdir(ctx.author.id)
+    temp = open(str(ctx.author.id) + '/tempreloadpet.txt', 'a+')
+    temp.close()
+    temp = open(str(ctx.author.id) + '/activepets.txt', 'a+')
+    temp.close()
+    with open(str(ctx.author.id) + '/activepets.txt', 'rb') as fp:
+        temp2 = pickle.load(fp)
+        with open(str(ctx.author.id) + '/tempreloadpet.txt', 'rb') as tempreload:
+            try:
+                tempr = pickle.load(tempreload)
+            except EOFError:
+                tempr = temp2
+        if tempr == temp2:
+            with open(str(ctx.author.id) + '/maxinv.txt', 'w') as maxinv:
+                maxinv.write('50')
+            with open(str(ctx.author.id) + '/dailymultiply.txt', 'w') as daymulti:
+                daymulti.write('1')
+        if 'turtle' in tempr:
+            temp = open(str(ctx.author.id) + '/maxinv.txt', 'a+')
+            temp.close()
+            with open(str(ctx.author.id) + '/maxinv.txt', 'r') as maxinv:
+                maxinvread = maxinv.read()
+            with open(str(ctx.author.id) + '/maxinv.txt', 'w') as maxinv:
+                maxinv.write(str(float(maxinvread)*1.1))
+            tempr.remove('turtle')
+            with open(str(ctx.author.id) + '/tempreloadpet.txt', 'wb') as tempreload:
+                pickle.dump(tempr, tempreload)
+            await reloadpets(ctx)
+        elif 'dog' in tempr:
+            temp = open(str(ctx.author.id) + '/dailymultiply.txt', 'a+')
+            temp.close()
+            with open(str(ctx.author.id) + '/dailymultiply.txt', 'r') as daymulti:
+                maxinvread = daymulti.read()
+            with open(str(ctx.author.id) + '/dailymultiply.txt', 'w') as daymulti:
+                daymulti.write(str(float(maxinvread)*1.1))
+            tempr.remove('dog')
+            with open(str(ctx.author.id) + '/tempreloadpet.txt', 'wb') as tempreload:
+                pickle.dump(tempr, tempreload)
+            await reloadpets(ctx)
+        else:
+            await ctx.send('it is done')
+            os.remove(str(ctx.author.id) + '/tempreloadpet.txt')
 
 
 # tells you when ready and changes discord activity
 @bot.event
 async def on_ready():
     print(f'{bot.user} has connected to Discord!')
-    await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name="space movie 1992"))
+    await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name="over my slaves"))
 
 
 # is for reading token & starting bot
