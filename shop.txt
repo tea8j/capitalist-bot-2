@@ -1,0 +1,8 @@
+```
+donald trump plushie          squeeze to get 0$-2,000$       1,000$
+bronze donald trump plushie   squeeze to get 0$-20,000$      10,000$
+silver donald trump plushie   squeeze to get 0$-200,000$     100,000$
+gold donald trump plushie     squeeze to get 0$-2,000,000$   1,000,000$
+
+for items with spaces, replace the spaces with underscores
+```

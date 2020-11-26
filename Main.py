@@ -1,10 +1,12 @@
 # created by tea8j on github, if this was reposted elsewhere, tell me.
 # credits to magic turtle#6942 on discord for help testing and brainstorming
 import discord
+from discord import Embed, Color
 from discord.ext import commands
 import os
 from datetime import date
 import pickle
+import random
 
 # sets command prefix
 bot = commands.Bot(command_prefix='>')
@@ -60,7 +62,10 @@ async def buypetfunc(id, pet, cost):
 
 
 async def converttostr(input_seq, seperator):
-    final_str = seperator.join(input_seq)
+    try:
+        final_str = seperator.join(input_seq)
+    except TypeError:
+        final_str = 'None'
     return final_str
 
 
@@ -90,6 +95,8 @@ async def buyitem(id, item, cost):
             try:
                 load = pickle.load(fp)
             except EOFError:
+                load = ['temp']
+            if not load:
                 load = ['temp']
             length = float(len(load))
             maxinv = float(await getval(str(id), 'maxinv', 50))
@@ -312,6 +319,100 @@ async def reloadpets(ctx):
         else:
             await ctx.send('it is done')
             os.remove(str(ctx.author.id) + '/tempreloadpet.txt')
+
+@bot.command()
+async def profile(ctx):
+    try:
+        mentioned = ctx.message.mentions[0]
+    except IndexError:
+        mentioned = ctx.author
+    bal = await(getval(str(mentioned.id), 'bal', '0'))
+    temp = open(str(ctx.author.id) + '/petlist.txt', 'a+')
+    temp.close()
+    temp = open(str(ctx.author.id) + '/activepets.txt', 'a+')
+    temp.close()
+    with open(str(ctx.author.id) + '/petlist.txt', 'rb') as fp:
+        try:
+            list = pickle.load(fp)
+        except EOFError:
+            list = ['Nothing']
+        acpetlist = await converttostr(list, ', ')
+    with open(str(ctx.author.id) + '/activepets.txt', 'rb') as fp:
+        try:
+            list = pickle.load(fp)
+        except EOFError:
+            list = ['Nothing']
+        arpetlist = await converttostr(list, ', ')
+
+    temp = open(str(ctx.author.id) + '/inventory.txt', 'a+')
+    temp.close()
+    with open(str(mentioned.id) + '/inventory.txt', 'rb') as fp:
+        try:
+            list = pickle.load(fp)
+        except EOFError:
+            list = ['Nothing']
+        inventory = await converttostr(list, ', ')
+
+    tags=[]
+    with open('developers.txt', 'rb') as fp:
+        devs = pickle.load(fp)
+    with open('supporters.txt', 'rb') as fp:
+        sups = pickle.load(fp)
+    if str(mentioned.id) in devs:
+        tags.append('💻')
+    if str(mentioned.id) in sups:
+        tags.append('💸')
+    tags2 = await converttostr(tags, '')
+
+
+    embed = Embed(
+        title=str(mentioned) + "'s profile",
+        colour=Color(0x00FF00),
+        description='Balance: ' + bal + '\nActive pets: ' + acpetlist + '\n Archived pets: ' + arpetlist + '\n Inventory: ' + inventory
+    )
+
+    embed.set_image(url=mentioned.avatar_url)
+    embed.set_footer(text=tags2)
+    return await ctx.send(embed=embed)
+
+@bot.command()
+async def use(ctx, item):
+    temp = open(str(ctx.author.id) + '/inventory.txt', 'a+')
+    temp.close()
+    with open(str(ctx.author.id) + '/inventory.txt', 'rb') as fp:
+        try:
+            load = pickle.load(fp)
+        except EOFError:
+            load = ['temp']
+    if str(item) in load:
+        if str(item) == 'donald_trump_plushie':
+            amount = random.randint(0, 2000)
+            await addval(str(ctx.author.id), 'bal', str(amount))
+            await ctx.send('you were given ' + str(amount) + '$')
+            with open(str(ctx.author.id) + '/inventory.txt', 'wb') as fp:
+                pickle.dump(load.remove('donald_trump_plushie'), fp)
+    if str(item) in load:
+        if str(item) == 'bronze_trump_plushie':
+            amount = random.randint(0, 20000)
+            await addval(str(ctx.author.id), 'bal', str(amount))
+            await ctx.send('you were given ' + str(amount) + '$')
+            with open(str(ctx.author.id) + '/inventory.txt', 'wb') as fp:
+                pickle.dump(load.remove('bronze_donald_trump_plushie'), fp)
+    if str(item) in load:
+        if str(item) == 'silver_donald_trump_plushie':
+            amount = random.randint(0, 200000)
+            await addval(str(ctx.author.id), 'bal', str(amount))
+            await ctx.send('you were given ' + str(amount) + '$')
+            with open(str(ctx.author.id) + '/inventory.txt', 'wb') as fp:
+                pickle.dump(load.remove('silver_donald_trump_plushie'), fp)
+    if str(item) in load:
+        if str(item) == 'gold_donald_trump_plushie':
+            amount = random.randint(0, 2000000)
+            await addval(str(ctx.author.id), 'bal', str(amount))
+            await ctx.send('you were given ' + str(amount) + '$')
+            with open(str(ctx.author.id) + '/inventory.txt', 'wb') as fp:
+                pickle.dump(load.remove('gold_donald_trump_plushie'), fp)
+
 
 
 # tells you when ready and changes discord activity
