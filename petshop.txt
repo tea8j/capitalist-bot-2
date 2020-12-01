@@ -1,0 +1,4 @@
+```
+turtle   gives 10% more inventory space     5000$
+dog      gives 10% more money from >daily   5000$
+```

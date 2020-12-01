@@ -65,7 +65,7 @@ async def converttostr(input_seq, seperator):
     try:
         final_str = seperator.join(input_seq)
     except TypeError:
-        final_str = 'None'
+        final_str = 'Nothing'
     return final_str
 
 
@@ -327,24 +327,24 @@ async def profile(ctx):
     except IndexError:
         mentioned = ctx.author
     bal = await(getval(str(mentioned.id), 'bal', '0'))
-    temp = open(str(ctx.author.id) + '/petlist.txt', 'a+')
+    temp = open(str(mentioned.id) + '/petlist.txt', 'a+')
     temp.close()
-    temp = open(str(ctx.author.id) + '/activepets.txt', 'a+')
+    temp = open(str(mentioned.id) + '/activepets.txt', 'a+')
     temp.close()
-    with open(str(ctx.author.id) + '/petlist.txt', 'rb') as fp:
+    with open(str(mentioned.id) + '/petlist.txt', 'rb') as fp:
         try:
             list = pickle.load(fp)
         except EOFError:
             list = ['Nothing']
         acpetlist = await converttostr(list, ', ')
-    with open(str(ctx.author.id) + '/activepets.txt', 'rb') as fp:
+    with open(str(mentioned.id) + '/activepets.txt', 'rb') as fp:
         try:
             list = pickle.load(fp)
         except EOFError:
             list = ['Nothing']
         arpetlist = await converttostr(list, ', ')
 
-    temp = open(str(ctx.author.id) + '/inventory.txt', 'a+')
+    temp = open(str(mentioned.id) + '/inventory.txt', 'a+')
     temp.close()
     with open(str(mentioned.id) + '/inventory.txt', 'rb') as fp:
         try:
@@ -358,10 +358,18 @@ async def profile(ctx):
         devs = pickle.load(fp)
     with open('supporters.txt', 'rb') as fp:
         sups = pickle.load(fp)
+    with open('brain.txt', 'rb') as fp:
+        brain = pickle.load(fp)
+    with open('turtle.txt', 'rb') as fp:
+        turtle = pickle.load(fp)
     if str(mentioned.id) in devs:
         tags.append('💻')
     if str(mentioned.id) in sups:
         tags.append('💸')
+    if str(mentioned.id) in brain:
+        tags.append('🧠')
+    if str(mentioned.id) in turtle:
+        tags.append('🐢')
     tags2 = await converttostr(tags, '')
 
 
